@@ -1,12 +1,8 @@
 import sys
 
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
-from PyQt5.QtWidgets import (
-    QApplication,
-    QGridLayout,
-    QPushButton,
-    QWidget,
-)
+
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from main import voice_assistant, greet
 
@@ -26,16 +22,49 @@ class VoiceAssistantWorker(QObject):
         self._isRunning = False
 
 
-class Window(QWidget):
+class Window(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Grażyna 2000")
-        self.setFixedWidth(300)
+        self.setFixedWidth(500)
         self.setFixedHeight(300)
 
-        layout = QGridLayout()
+        layout = QtWidgets.QGridLayout()
 
-        self.b1 = QPushButton("Słuchaj")
+        p = QtGui.QPalette()
+        gradient = QtGui.QLinearGradient(0, 500, 300, 0)
+        gradient.setColorAt(0.0, QtGui.QColor(207,236,247))
+        gradient.setColorAt(0.8, QtGui.QColor(98,193,229))
+        p.setBrush(QtGui.QPalette.Window, QtGui.QBrush(gradient))
+        self.setPalette(p)
+
+        self.b1 = QtWidgets.QPushButton("Słuchaj")
+        QtGui.QFontDatabase.addApplicationFont("Rubik-Medium.ttf")
+        self.b1.setStyleSheet("""QPushButton {
+            background-color: #fcfcfc;
+            border-radius: 4px;
+            border-style: none;
+            font-family: 'Rubik Medium', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.5;
+            margin: 0;
+            max-width: none;
+            min-height: 40px;
+            min-width: 10px;
+            outline: none;
+            padding: 8px 16px 6px;
+            position: relative;
+            text-align: center;
+            text-transform: none;
+            width: 100%;
+        }
+        QPushButton:disabled {
+            background-color: #db6a6a;
+            color: #FFFFFF;
+        }
+        """)
+        self.b1.setGeometry(200, 230, 100, 40)
         self.b1.setCheckable(True)
         self.b1.setEnabled(False)
         self.b1.clicked.connect(self.toggle_voice_assistant)
@@ -73,7 +102,7 @@ class Window(QWidget):
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window = Window()
     window.show()
     sys.exit(app.exec_())

@@ -23,32 +23,27 @@ def speak(text):
     engine.runAndWait()
 
 def wishMe():
-    hour=datetime.datetime.now().hour
+    timestamp = time.strftime('%H:%M:%S')
+    hour = int(timestamp.split(':')[0])
     if hour>=0 and hour<18:
         if (hour % 2 == 0):
             speak("Dzień dobry")
-            print("Dzień dobry")
         else:
             speak("Witaj")
-            print("Witaj")
     else:
         speak("Dobry wieczór")
-        print("Dobry wieczór")
 
 def takeCommand():
     r=sr.Recognizer()
     with sr.Microphone() as source:
         print("Słucham...")
-        while True:
-            audio=r.listen(source)
-
-            try:
-                statement=r.recognize_google(audio,language='pl-PL')
-                print(f"user said:{statement}\n")
-            except Exception as e:
-                speak("Przepraszam, proszę powtórz jeszcze raz")
-                continue
-            return statement
+        audio=r.listen(source)
+        try:
+            statement=r.recognize_google(audio,language='pl-PL')
+            print(f"user said:{statement}\n")
+        except Exception as e:
+            speak("Przepraszam, proszę powtórz jeszcze raz")
+        return statement
 
 
 closeStatements = ['żegnaj', 'ok pa', 'stop', 'zamknij', 'wyjdź']
@@ -57,7 +52,7 @@ youtubeStatements = ['youtube', 'otwórz youtube']
 googleStatements = ['google', 'otwórz google']
 mailStatements = ['otwórz gmail', 'otwórz pocztę', 'poczta email', 'email']
 weatherStatements = ['pogoda', 'jaka jest pogoda', 'powiedz mi jaka jest pogoda']
-timeStatements = ['czas', 'jaka jest godzina', 'jaka jest teraz godzina', 'jaką mamy godzinę', 'która teraz jest godzina']
+timeStatements = ['czas', 'jaka jest godzina', 'jaka jest teraz godzina', 'jaką mamy godzinę', 'która teraz jest godzina', 'obecna godzina']
 whoStatements = ['kim jesteś', 'co potrafisz', 'co umiesz', 'przedstaw się', 'powiedz coś o sobie']
 buildStatements = ['kto cię stworzył', 'kto cię zbudował', 'kto cię wynalazł']
 stackStatements = ['otwórz stack overflow', 'otwórz stackoverflow', 'stackoverflow', 'stack overflow']
@@ -83,12 +78,17 @@ def voice_assistant():
         return
 
     elif text := next((text for text in wikiStatements if text in statement), None):
-        speak('Przeszukuję Wikipedię...')
-        statement = statement.replace(text, "")
-        results = wikipedia.summary(statement, sentences=3)
-        speak("Według wikipedii")
-        print(results)
-        speak(results)
+        try:
+            speak('Przeszukuję Wikipedię...')
+            statement = statement.replace(text, "")
+            results = wikipedia.summary(statement, sentences=3)
+            if (len(results) < 90):
+                results = wikipedia.summary(statement, sentences=4)
+            speak("Według wikipedii")
+            print(results)
+            speak(results)
+        except Exception as e:
+            speak("Nie znaleziono wyniku")
 
     elif any(text in statement for text in youtubeStatements):
         webbrowser.open_new_tab("https://www.youtube.com")
@@ -98,12 +98,12 @@ def voice_assistant():
     elif any(text in statement for text in googleStatements):
         webbrowser.open_new_tab("https://www.google.com")
         speak("Otwieram stronę google.com")
-        time.sleep(5)
+        time.sleep(3)
 
     elif any(text in statement for text in mailStatements):
         webbrowser.open_new_tab("gmail.com")
         speak("Otworzono gmail")
-        time.sleep(5)
+        time.sleep(3)
 
     elif any(text in statement for text in weatherStatements):
         api_key="8ef61edcf1c576d65d836254e11ea420"
@@ -142,21 +142,19 @@ def voice_assistant():
 
     elif any(text in statement for text in buildStatements):
         speak("Zostałam zbudowana przez Huberta, Marcina i Mateusza")
-        print("Zostałam zbudowana przez Huberta, Marcina i Mateusza")
 
     elif any(text in statement for text in stackStatements):
-        webbrowser.open_new_tab("https://stackoverflow.com/login")
+        webbrowser.open_new_tab("https://stackoverflow.com")
         speak("Otworzono stack overflow")
 
     elif any(text in statement for text in newsStatements):
         news = webbrowser.open_new_tab("https://news.google.com/topstories?hl=pl&gl=PL&ceid=PL:pl")
         speak('Oto kilka newsów zaproponowanych przez Google. Miłego czytania')
-        time.sleep(6)
+        time.sleep(3)
 
     elif text := next((text for text in searchStatements if text in statement), None):
-        statement = statement.replace(text, "")
-        webbrowser.open_new_tab(statement)
-        time.sleep(5)
+        statement = statement.replace(text, "").strip().replace(" ","%20")
+        webbrowser.open_new(f"http://google.com/search?q={statement}")
 
     elif 'zapytaj' in statement:
         speak('Potrafię odpowiedzieć na pytania obliczeniowe i geograficzne. Co chcesz wiedzieć?')
@@ -171,5 +169,6 @@ def voice_assistant():
     elif any(text in statement for text in logoutStatements):
         speak("Ok, twój komputer wyłączy się za 10 sekund, upewnij się, że zamknąłeś i zapisałeś stan we wszystkich aplikacjach")
         subprocess.call(["shutdown", "/l"])
-    
-    print("exiting")
+
+    else:
+        speak("Nie rozumiem polecenia")
