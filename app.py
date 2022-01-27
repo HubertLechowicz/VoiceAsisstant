@@ -25,7 +25,7 @@ class VoiceAssistantWorker(QObject):
 class Window(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Grażyna 2000")
+        self.setWindowTitle("Asystent Głosowy")
         self.setFixedWidth(500)
         self.setFixedHeight(300)
 

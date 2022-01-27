@@ -10,6 +10,8 @@ import subprocess
 import wolframalpha
 import json
 import requests
+import urllib.request
+import re
 from googletrans import Translator
 
 engine=pyttsx3.init('sapi5')
@@ -48,7 +50,8 @@ def takeCommand():
 
 closeStatements = ['żegnaj', 'ok pa', 'stop', 'zamknij', 'wyjdź']
 wikiStatements = ['wikipedia', 'otwórz wikipedię', 'przeszukaj wikipedię', 'znajdź w wikipedii']
-youtubeStatements = ['youtube', 'otwórz youtube']
+youtubeSearchStatements = ['wyszukaj w youtube', 'przeszukaj youtube', 'szukaj w youtube']
+youtubeFirstSearchStatement = ['youtube znajdź', 'znajdź w youtube']
 googleStatements = ['google', 'otwórz google']
 mailStatements = ['otwórz gmail', 'otwórz pocztę', 'poczta email', 'email']
 weatherStatements = ['pogoda', 'jaka jest pogoda', 'powiedz mi jaka jest pogoda']
@@ -62,8 +65,8 @@ logoutStatements = ['wyloguj']
 
 
 def greet():
-    speak("Ładowanie twojego personalnego asystenta głosowego - Grażyna dwatysiące")
-    print('Ładowanie twojego personalnego asystenta głosowego - Grażyna dwatysiące')
+    speak("Ładowanie twojego personalnego asystenta głosowego")
+    print('Ładowanie twojego personalnego asystenta głosowego')
     wishMe()
 
 def voice_assistant():
@@ -90,10 +93,23 @@ def voice_assistant():
         except Exception as e:
             speak("Nie znaleziono wyniku")
 
-    elif any(text in statement for text in youtubeStatements):
+    elif statement == 'otwórz youtube' or statement == 'youtube':
         webbrowser.open_new_tab("https://www.youtube.com")
         speak("Otworzono youtube")
-        time.sleep(5)
+
+    elif text := next((text for text in youtubeSearchStatements if text in statement), None):
+        statement = statement.replace(text, "").strip()
+        if (len(statement) != 0):
+            webbrowser.open_new_tab(f"https://www.youtube.com/results?search_query={statement}")
+            speak(f"Wyniki dla: {statement}")
+
+    elif text := next((text for text in youtubeFirstSearchStatement if text in statement), None):
+        statement = statement.replace(text, "").strip().replace(' ', '+')
+        if (len(statement) != 0):
+            html = urllib.request.urlopen(f"https://www.youtube.com/results?search_query={statement}")
+            video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
+            webbrowser.open_new_tab(f"https://www.youtube.com/watch?v={video_ids[0]}")
+            speak(f"Youtube, otworzono: {statement}")
 
     elif any(text in statement for text in googleStatements):
         webbrowser.open_new_tab("https://www.google.com")
@@ -136,7 +152,7 @@ def voice_assistant():
         speak(f"Obecna godzina: {strTime}")
 
     elif any(text in statement for text in whoStatements):
-        speak('Jestem Grażyna dwatysiące - twój asysten głosowy. Potrafię wykonywać takie czynności jak'
+        speak('Jestem asystentem głosowym, potrafiącym wykonywać takie czynności jak'
                 'otworzyć youtube, google, gmail czy stack overflow, zwracać czas, przeszukiwać wikipedię i zwracać aktualną pogodę w danym mieście' 
                 'zwracam newsy z kraju oraz radzę sobie z obliczeniami i pytaniami geograficznymi')
 
